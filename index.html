@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Optkf to TaikøNauts</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=RocknRoll+One&display=swap" rel="stylesheet">
+
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: "RocknRoll One", sans-serif;
+    background: linear-gradient(135deg, #e6f4ea, #c8e6c9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card {
+    background: #ffffff;
+    width: 720px;
+    max-width: 95%;
+    padding: 40px 50px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    text-align: center;
+  }
+
+  h1 {
+    margin-top: 0;
+    font-size: 48px;
+    color: #2e7d32;
+  }
+
+  .subtitle {
+    font-size: 22px;
+    color: #4e6e52;
+    margin-bottom: 30px;
+    line-height: 1.5;
+  }
+
+  .file-box {
+    margin: 30px 0;
+    padding: 25px;
+    border: 2px dashed #81c784;
+    border-radius: 16px;
+    background: #f1f8f4;
+  }
+
+  input[type="file"] {
+    font-size: 18px;
+  }
+
+  button {
+    margin-top: 25px;
+    font-size: 26px;
+    padding: 16px 60px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  }
+
+  button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+  }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  #status {
+    margin-top: 25px;
+    font-size: 22px;
+    color: #1b5e20;
+    background: #e8f5e9;
+    padding: 14px;
+    border-radius: 12px;
+    display: none;
+  }
+
+  .footer {
+    margin-top: 35px;
+    font-size: 14px;
+    color: #78909c;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Optkf → TaikøNauts</h1>
+    <div class="subtitle">
+      OpenTaiko (FullHD) 用マイドンを<br>
+      TaikøNauts 用に(無理やり)変換するツールです
+    </div>
+
+    <div class="file-box">
+      <input type="file" id="folderInput" webkitdirectory multiple>
+    </div>
+
+    <button onclick="processFiles()">変換</button>
+
+    <div id="status">変換中…（これが結構長いのよ）</div>
+
+    <div class="footer">
+      「optkf」という名前の色々入ったフォルダをアップロードしてください<br>外部にアップロードはしてません(やり方わからんし)
+    </div>
+  </div>
+
+
+
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script>
+    const folderMap = {
+      "Title_Entry": "entry_loop",
+      "10combo": "10combo",
+      "10combo_Max": "10combomax",
+      "Balloon_Breaking": "balloon_breaking",
+      "Balloon_Broke": "balloon_broke",
+      "Balloon_Miss": "balloon_miss",
+      "Clear": "clear",
+      "Clearin": "clearin",
+      "Return": "combocut",
+      "MissDown": "failed_loop",
+      "GoGo": "gogo",
+      "GoGoStart": "gogostart",
+      "Miss": "miss_loop",
+      "Normal": "normal",
+      "Result_Clear": "result_clear_loop",
+      "Result_Failed": "result_failed_loop",
+      "Result_Failed_In": "result_failed_in",
+      "Result_Normal": "result_loop",
+      "Menu_Loop": "songselect_loop",
+      "Menu_Wait": "songselect_wait_loop",
+      "Soulin": "soulin"
+    };
+
+    const configJson = {
+      "donchanEntryX":[-163,1297],
+      "donchanEntryY":[290,290],
+      "donchanEntryPlaySideX":458,
+      "donchanEntryPlaySideY":-160,
+      "donchanEntryScale":1.31,
+      "donchanEntryLoopPlaySideTime":800,
+      "donchanEntryModeLoopTime":500,
+      "donchanEntryModeDecideLoopTime":1000,
+      "donchanSongSelectX":[-154,1300],
+      "donchanSongSelectY":[304,304],
+      "donchanSongSelectScale":1.28,
+      "donchanSongSelectLoopTime":1000,
+      "donchanSongSelectDecideTime":1000,
+      "donchanSongSelectSkipMotionTime":1000,
+      "donchanSongSelectWaitLoopTime":560,
+      "donchanSongSelectSongStartTime":360,
+      "donchanSongSelectSongStartJumpIndex":21,
+      "donchanX":[-41,-41],
+      "donchanY":[-200,605],
+      "donchanBalloonX":[220,220],
+      "donchanBalloonY":[-229,435],
+      "donchanEnsoGameNormalScale":1,
+      "donchanEnsoGameBalloonScale":1,
+      "goGoStartMotionFromBeginning":true,
+      "normalMotionBeat":4,
+      "combo10MotionBeat":2,
+      "combo10MaxMotionBeat":2,
+      "goGoStartMotionBeat":2,
+      "goGoMotionMotionBeat":8,
+      "clearInMotionBeat":2,
+      "clearMotionBeat":2,
+      "soulInMotionBeat":2,
+      "comboCutMotionBeat":2,
+      "missLoopMotionBeat":1,
+      "failedLoopMotionBeat":1,
+      "donchanResultX":[-32,1401],
+      "donchanResultY":[462,462],
+      "donchanResultScale":0.9174311927,
+      "donchanResultLoopTime":500,
+      "donchanResultClearLoopTime":700,
+      "donchanResultFailedInTime":200,
+      "donchanResultFailedLoopTime":500
+    };
+
+async function processFiles() {
+  const status = document.getElementById("status");
+  const button = document.querySelector("button");
+
+  status.style.display = "block";
+  status.textContent = "変換中…(これが結構長いのよ)";
+  button.disabled = true;
+
+  const files = document.getElementById("folderInput").files;
+  if (!files.length) {
+    status.style.display = "none";
+    button.disabled = false;
+    alert("フォルダを選択してね");
+    return;
+  }
+
+  const zip = new JSZip();
+
+  for (const file of files) {
+    const parts = file.webkitRelativePath.split("/");
+    const base = parts[1];
+    const newFolder = folderMap[base];
+    if (!newFolder) continue;
+
+    const newPath = [newFolder, ...parts.slice(2)].join("/");
+
+    if (
+      file.type.startsWith("image/") &&
+      (
+        newFolder === "songselect_loop" ||
+        newFolder === "songselect_wait_loop" ||
+        newFolder === "entry_loop" ||
+        newFolder.startsWith("result_")
+      )
+    ) {
+      const blob = await transformImage(file, newFolder);
+      zip.file(newPath, blob);
+    } else {
+      zip.file(newPath, file);
+    }
+  }
+
+  zip.file("Config.json", JSON.stringify(configJson, null, 2));
+
+  const content = await zip.generateAsync({ type: "blob" });
+
+  status.style.display = "none";
+  button.disabled = false;
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(content);
+  a.download = "converted.zip";
+  a.click();
+}
+
+
+function transformImage(file, folderName) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 600;
+      canvas.height = 600;
+      const ctx = canvas.getContext("2d");
+
+      let scale = 1.0;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      // songselect 系
+      if (
+        folderName === "songselect_loop" ||
+        folderName === "songselect_wait_loop"
+      ) {
+        scale = 0.78;
+        offsetX = -95;
+        offsetY = -78;
+      }
+
+      // entry_loop
+      if (folderName === "entry_loop") {
+        scale = 0.7633587786;
+        offsetX = 0;
+        offsetY = 0;
+      }
+
+      // result 系
+      if (folderName.startsWith("result_")) {
+        scale = 1.09;
+        offsetX = -118;
+        offsetY = -82;
+      }
+
+
+      const w = img.width * scale;
+      const h = img.height * scale;
+
+      ctx.clearRect(0, 0, 600, 600);
+      ctx.drawImage(img, offsetX, offsetY, w, h);
+
+      canvas.toBlob(blob => resolve(blob));
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+  </script>
+</body>
+</html>
