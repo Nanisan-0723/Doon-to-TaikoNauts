@@ -99,7 +99,7 @@
     <h1>Optk → TaikøNauts</h1>
     <div class="subtitle">
       OpenTaiko (HD)用マイドンを<br>
-      TaikøNauts 用に(かなりマジで本当に無理やり)変換するツールです
+      TaikøNauts 用に(本当に無理やり)変換するツールです
     </div>
 
     <div class="file-box">
@@ -143,6 +143,7 @@
     };
 
     const configJson = {
+      "name":"optk",
       "donchanEntryX":[-345,1102],
       "donchanEntryY":[143,143],
       "donchanEntryPlaySideX":263,
@@ -184,7 +185,9 @@
       "donchanResultLoopTime":500,
       "donchanResultClearLoopTime":700,
       "donchanResultFailedInTime":200,
-      "donchanResultFailedLoopTime":500
+      "donchanResultFailedLoopTime":500,
+      "donchanPlayerCustomizeX":[-159,1273],
+      "donchanPlayerCustomizeY":[405,405]
     };
 
 async function processFiles() {

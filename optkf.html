@@ -111,7 +111,7 @@
     <div id="status">変換中…（結構長い）</div>
 
     <div class="footer">
-      「optkf」という名前の色々入ったフォルダをアップロードしてください<br>外部にアップロードはしてません(やり方わからんし)
+      「optkf」という名前の色々入ったフォルダをアップロードしてください<br>optkfしかいらんくね？OpenTaiko(HD)とかTNDEとか使うやついんの？<br>外部にアップロードはしてません(やり方わからんし)
     </div>
   </div>
 
@@ -144,6 +144,7 @@
     };
 
     const configJson = {
+      "name":"optkf",
       "donchanEntryX":[-163,1297],
       "donchanEntryY":[290,290],
       "donchanEntryPlaySideX":458,
@@ -185,7 +186,9 @@
       "donchanResultLoopTime":500,
       "donchanResultClearLoopTime":700,
       "donchanResultFailedInTime":200,
-      "donchanResultFailedLoopTime":500
+      "donchanResultFailedLoopTime":500,
+      "donchanPlayerCustomizeX":[-37,1413],
+      "donchanPlayerCustomizeY":[510,510]
     };
 
 async function processFiles() {
