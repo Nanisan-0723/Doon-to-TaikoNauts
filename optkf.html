@@ -128,8 +128,10 @@
       "Balloon_Miss": "balloon_miss",
       "Clear": "clear",
       "Clearin": "clearin",
+      "Dan_Select_In": "dan_select_in",
       "Return": "combocut",
       "MissDown": "failed_loop",
+      "ClearOut": "failed_down",
       "GoGo": "gogo",
       "GoGoStart": "gogostart",
       "Miss": "miss_loop",
@@ -227,27 +229,101 @@ async function processFiles() {
 
   const zip = new JSZip();
 
+  // ===== フォルダごとにまとめる =====
+  const filesByFolder = {};
+
   for (const file of files) {
     const parts = file.webkitRelativePath.split("/");
     const base = parts[1];
     const newFolder = folderMap[base];
     if (!newFolder) continue;
 
-    const newPath = [newFolder, ...parts.slice(2)].join("/");
+    if (!filesByFolder[newFolder]) {
+      filesByFolder[newFolder] = [];
+    }
 
-    if (
-      file.type.startsWith("image/") &&
-      (
-        newFolder === "songselect_loop" ||
-        newFolder === "songselect_wait_loop" ||
-        newFolder === "entry_loop" ||
-        newFolder.startsWith("result_")
-      )
-    ) {
-      const blob = await transformImage(file, newFolder);
-      zip.file(newPath, blob);
-    } else {
-      zip.file(newPath, file);
+    filesByFolder[newFolder].push(file);
+  }
+
+  // ---- dan_select_in 特殊処理（強制生成）----
+{
+  const comboMax = (filesByFolder["10combomax"] || [])
+    .filter(f => f.type.startsWith("image/"))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+  const combo = (filesByFolder["10combo"] || [])
+    .filter(f => f.type.startsWith("image/"))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+  if (comboMax.length > 0 && combo.length > 0) {
+    let index = 0;
+
+    for (let i = 0; i <= 42; i++) {
+      const file = comboMax[i];
+      if (!file) continue;
+
+      const blob = await transformImage(file, "dan_select_in");
+      zip.file(`dan_select_in/${index}.png`, blob);
+      index++;
+    }
+
+    for (let i = 21; i >= 0; i--) {
+      const file = combo[i];
+      if (!file) continue;
+
+      const blob = await transformImage(file, "dan_select_in");
+      zip.file(`dan_select_in/${index}.png`, blob);
+      index++;
+    }
+  }
+}
+
+  // ===== フォルダ単位で処理 =====
+  for (const [newFolder, folderFiles] of Object.entries(filesByFolder)) {
+
+    // ---- dan_select_in 特殊処理 ----
+    if (newFolder === "dan_select_in") {
+      const comboMax = (filesByFolder["10combomax"] || [])
+        .filter(f => f.type.startsWith("image/"))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+      const combo = (filesByFolder["10combo"] || [])
+        .filter(f => f.type.startsWith("image/"))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+      let index = 0;
+
+      // 10combomax 0 → 42
+      for (let i = 0; i <= 42; i++) {
+        const file = comboMax[i];
+        if (!file) continue;
+
+        const blob = await transformImage(file, newFolder);
+        zip.file(`${newFolder}/${index}.png`, blob);
+        index++;
+      }
+
+      // 10combo 21 → 0（逆順）
+      for (let i = 21; i >= 0; i--) {
+        const file = combo[i];
+        if (!file) continue;
+
+        const blob = await transformImage(file, newFolder);
+        zip.file(`${newFolder}/${index}.png`, blob);
+        index++;
+      }
+
+      continue;
+    }
+
+    // ---- 通常処理 ----
+    const images = folderFiles
+      .filter(f => f.type.startsWith("image/"))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+    for (let i = 0; i < images.length; i++) {
+      const blob = await transformImage(images[i], newFolder);
+      zip.file(`${newFolder}/${i}.png`, blob);
     }
   }
 
@@ -263,7 +339,6 @@ async function processFiles() {
   a.download = "0.zip";
   a.click();
 }
-
 
 function transformImage(file, folderName) {
   return new Promise(resolve => {
