@@ -229,7 +229,6 @@ async function processFiles() {
 
   const zip = new JSZip();
 
-  // ===== フォルダごとにまとめる =====
   const filesByFolder = {};
 
   for (const file of files) {
@@ -245,7 +244,6 @@ async function processFiles() {
     filesByFolder[newFolder].push(file);
   }
 
-  // ---- dan_select_in 特殊処理（強制生成）----
 {
   const comboMax = (filesByFolder["10combomax"] || [])
     .filter(f => f.type.startsWith("image/"))
@@ -278,10 +276,8 @@ async function processFiles() {
   }
 }
 
-  // ===== フォルダ単位で処理 =====
   for (const [newFolder, folderFiles] of Object.entries(filesByFolder)) {
 
-    // ---- dan_select_in 特殊処理 ----
     if (newFolder === "dan_select_in") {
       const comboMax = (filesByFolder["10combomax"] || [])
         .filter(f => f.type.startsWith("image/"))
@@ -293,7 +289,6 @@ async function processFiles() {
 
       let index = 0;
 
-      // 10combomax 0 → 42
       for (let i = 0; i <= 42; i++) {
         const file = comboMax[i];
         if (!file) continue;
@@ -303,7 +298,6 @@ async function processFiles() {
         index++;
       }
 
-      // 10combo 21 → 0（逆順）
       for (let i = 21; i >= 0; i--) {
         const file = combo[i];
         if (!file) continue;
@@ -316,7 +310,6 @@ async function processFiles() {
       continue;
     }
 
-    // ---- 通常処理 ----
     const images = folderFiles
       .filter(f => f.type.startsWith("image/"))
       .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
