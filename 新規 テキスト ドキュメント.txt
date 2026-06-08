@@ -1,0 +1,4 @@
+    // <label>
+    //   <input type="checkbox" id="hdMode">
+    //   微高画質モード
+    // </label>

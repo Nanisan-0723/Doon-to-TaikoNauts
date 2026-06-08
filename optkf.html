@@ -99,12 +99,15 @@
     <h1>Optkf → TaikøNauts</h1>
     <div class="subtitle">
       OpenTaiko (FullHD) 用マイドンを<br>
-      TaikøNauts 用に(無理やり)変換するツールです
+      TaikøNauts 用に(無理やり)変換するツールです。<br>
+      無理やりなので一部画質が低下するかもしれません。
     </div>
 
     <div class="file-box">
       <input type="file" id="folderInput" webkitdirectory multiple>
     </div>
+
+
 
     <button onclick="processFiles()">変換</button>
 
@@ -149,8 +152,8 @@
       "name":"optkf",
       "entryX":[-163,1297],
       "entryY":[290,290],
-      "entryPlaySideX":458,
-      "entryPlaySideY":-160,
+      "entryPlaySideX":375,
+      "entryPlaySideY":-228,
       "entryScale":1.31,
       "entryLoopPlaySideTime":800,
       "entryModeLoopTime":500,
@@ -169,7 +172,7 @@
       "ensoGameBalloonX":[220,220],
       "ensoGameBalloonY":[-229,225],
       "ensoGameNormalScale":1,
-      "ensoGameBalloonScale":1,
+      "ensoGameBalloonScale":1.1764705882,
       "goGoStartMotionFromBeginning":true,
       "normalMotionBeat":4,
       "combo10MotionBeat":2,
@@ -189,29 +192,30 @@
       "resultClearLoopTime":700,
       "resultFailedInTime":200,
       "resultFailedLoopTime":500,
-      "danSelectX":0,
-      "danSelectY":0,
+      "danSelectX":-71,
+      "danSelectY":452,
       "danSelectScale":1,
       "danSelectLoopTime":1000,
-      "danSelectWaitLoopTime":1000,
+      "danSelectWaitLoopTime":100,
       "danSelectDecideTime":1000,
-      "danSelectSongStartJumpIndex":1,
-      "danSelectSongStartTime":1000,
-      "danresultX":0,
-      "danresultY":0,
-      "danresultScale":1,
-      "danresultNormalLoopTime":1000,
-      "danresultFailedInTime":1000,
-      "danresultFailedLoopTime":1000,
-      "danresultRedInTime":1000,
-      "danresultRedLoopTime":1000,
-      "danresultGoldInTime":1000,
-      "danresultGoldLoopTime":1000,
+      "danSelectSongStartJumpIndex":21,
+      "danSelectSongStartTime":360,
+      "danResultX":-71,
+      "danResultY":452,
+      "danResultScale":1,
+      "danResultNormalLoopTime":1000,
+      "danResultFailedInTime":1000,
+      "danResultFailedLoopTime":1000,
+      "danResultRedInTime":1000,
+      "danResultRedLoopTime":500,
+      "danResultGoldInTime":700,
+      "danResultGoldLoopTime":700,
       "playerCustomizeX":[-37,1413],
       "playerCustomizeY":[510,510]
     };
 
 async function processFiles() {
+  const hdMode = document.getElementById("hdMode")?.checked;
   const status = document.getElementById("status");
   const button = document.querySelector("button");
 
@@ -260,7 +264,7 @@ async function processFiles() {
       const file = comboMax[i];
       if (!file) continue;
 
-      const blob = await transformImage(file, "dan_select_in");
+      const blob = await transformImage(file, "dan_select_in", hdMode);
       zip.file(`dan_select_in/${index}.png`, blob);
       index++;
     }
@@ -269,7 +273,7 @@ async function processFiles() {
       const file = combo[i];
       if (!file) continue;
 
-      const blob = await transformImage(file, "dan_select_in");
+      const blob = await transformImage(file, "dan_select_in", hdMode);
       zip.file(`dan_select_in/${index}.png`, blob);
       index++;
     }
@@ -293,7 +297,7 @@ async function processFiles() {
         const file = comboMax[i];
         if (!file) continue;
 
-        const blob = await transformImage(file, newFolder);
+        const blob = await transformImage(file, newFolder, hdMode);
         zip.file(`${newFolder}/${index}.png`, blob);
         index++;
       }
@@ -302,7 +306,7 @@ async function processFiles() {
         const file = combo[i];
         if (!file) continue;
 
-        const blob = await transformImage(file, newFolder);
+        const blob = await transformImage(file, newFolder, hdMode);
         zip.file(`${newFolder}/${index}.png`, blob);
         index++;
       }
@@ -315,7 +319,7 @@ async function processFiles() {
       .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
     for (let i = 0; i < images.length; i++) {
-      const blob = await transformImage(images[i], newFolder);
+      const blob = await transformImage(images[i], newFolder, hdMode);
       zip.file(`${newFolder}/${i}.png`, blob);
     }
   }
@@ -333,7 +337,7 @@ async function processFiles() {
   a.click();
 }
 
-function transformImage(file, folderName) {
+function transformImage(file, folderName, hdMode) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
@@ -355,7 +359,7 @@ function transformImage(file, folderName) {
       canvas.height = canvasHeight;
       const ctx = canvas.getContext("2d");
 
-      let scale = 1.0;
+      let scale = 1;
       let offsetX = 0;
       let offsetY = 0;
 
@@ -364,14 +368,28 @@ function transformImage(file, folderName) {
         folderName === "songselect_loop" ||
         folderName === "songselect_wait_loop"
       ) {
-        scale = 0.78;
-        offsetX = -95;
-        offsetY = -78;
+        if (hdMode) {
+          scale = 1;
+          offsetX = -110;
+          offsetY = -90;
+        } else {
+          scale = 0.78;
+          offsetX = -95;
+          offsetY = -78;
+        }
       }
 
       // entry_loop
       if (folderName === "entry_loop") {
-        scale = 0.7633587786;
+        if (hdMode) {
+          scale = 1;
+          offsetX = -83;
+          offsetY = -68;
+        } else {
+          scale = 0.7633587786;
+          offsetX = -83;
+          offsetY = -68;
+        }
       }
 
       // result 系
@@ -387,9 +405,15 @@ function transformImage(file, folderName) {
         folderName === "balloon_broke" ||
         folderName === "balloon_miss"
       ) {
-        scale = 1.0;
-        offsetX = 0;
-        offsetY = 0;
+        if (hdMode) {
+          scale = 1;
+          offsetX = -26;
+          offsetY = -100;
+        } else {
+          scale = 0.85;
+          offsetX = -26;
+          offsetY = -100;
+        }
       }
 
       const w = img.width * scale;
